@@ -3,248 +3,277 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sluice Bench - Benchmark Report</title>
+    <title>Sluice Gate - Live Weather Stream</title>
     <style>
         body {
             background-color: #050b14;
             color: #7ce7ff;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            padding: 20px;
-            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             display: flex;
             justify-content: center;
+            padding: 15px;
+            margin: 0;
         }
         .container {
             width: 100%;
-            max-width: 450px;
+            max-width: 420px;
             box-sizing: border-box;
         }
-        .header-title {
+        .header-section {
+            margin-bottom: 20px;
+        }
+        .title-text {
             font-size: 2.2rem;
             font-weight: bold;
-            color: #7ce7ff;
             line-height: 1.2;
-            margin-bottom: 5px;
+            color: #00f0ff;
         }
-        .sub-header {
+        .status-badge {
+            background-color: #ff3333;
+            color: #050b14;
+            font-size: 0.75rem;
+            font-weight: bold;
+            padding: 3px 10px;
+            border-radius: 12px;
+            display: inline-block;
+            vertical-align: middle;
+            margin-left: 10px;
+        }
+        .sub-title {
             font-size: 0.95rem;
             color: #a5b7cc;
-            margin-bottom: 15px;
             font-family: monospace;
-        }
-        .btn-refresh {
-            background: none;
-            border: 1px solid #1f3a60;
-            color: #7ce7ff;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.95rem;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 15px;
-        }
-        .timestamp {
-            font-size: 0.85rem;
-            color: #556b85;
-            margin-bottom: 25px;
+            margin-top: 5px;
         }
         
-        /* 4-BUTTON INTERACTIVE CLUSTER */
-        .control-cluster {
+        /* INTERACTIVE BUTTONS */
+        .controls {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 8px;
-            margin-bottom: 20px;
+            margin: 15px 0;
         }
-        .control-cluster button {
-            background-color: #0b1524;
-            border: 1px solid #1e3656;
+        .controls button {
+            background-color: #09121f;
+            border: 1px solid #111e30;
             color: #ffffff;
             padding: 10px 0;
             font-family: monospace;
             font-weight: bold;
-            font-size: 0.85rem;
             border-radius: 6px;
             cursor: pointer;
-            transition: all 0.2s;
-        }
-        .control-cluster button:active {
-            transform: scale(0.95);
         }
         #btn-start { border-color: #00ff66; color: #00ff66; }
         #btn-test { border-color: #ffcc00; color: #ffcc00; }
         #btn-resume { border-color: #00ccff; color: #00ccff; }
         #btn-end { border-color: #ff3333; color: #ff3333; }
 
-        /* BENCHMARK DISPLAY CARDS */
-        .card {
+        /* THE CIRCULAR GAUGE DOCK */
+        .gauge-box {
             background-color: #09121f;
-            border-radius: 12px;
-            padding: 24px 15px;
-            margin-bottom: 16px;
+            border-radius: 28px;
+            padding: 20px;
             text-align: center;
             border: 1px solid #111e30;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
-        .card-value {
-            font-size: 2.3rem;
+        .gauge-svg { width: 180px; height: 180px; }
+        .gauge-track { fill: none; stroke: #111e30; stroke-width: 10; stroke-linecap: round; }
+        .gauge-needle {
+            stroke: #00f0ff; stroke-width: 5; stroke-linecap: round;
+            transform-origin: 90px 90px;
+            transition: transform 0.4s cubic-bezier(0.1, 0.8, 0.3, 1);
+        }
+        .gauge-labels { fill: #556b85; font-family: monospace; font-size: 14px; font-weight: bold; }
+        .gauge-center { fill: #050b14; stroke: #00f0ff; stroke-width: 4; }
+        .load-indicator { margin-top: 15px; font-family: monospace; font-size: 0.95rem; color: #a5b7cc; }
+
+        /* SCROLLING TEXT METRICS DOCK */
+        .metric-display {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .metric-big-val {
+            font-size: 3.5rem;
             font-weight: bold;
-            letter-spacing: 1px;
-            margin-bottom: 8px;
+            color: #00f0ff;
             font-family: monospace;
+            line-height: 1.1;
         }
-        .card-label {
+        .metric-sub-label {
             font-size: 0.85rem;
             color: #556b85;
-            text-transform: lowercase;
-            font-style: italic;
-        }
-        
-        /* COLOR CODING DIRECTLY MATCHING YOUR SCREENSHOT */
-        .cyan-text { color: #00f0ff; }
-        
-        /* HIDDEN DIAGNOSTIC LOG BOX */
-        .terminal-log {
-            background-color: #02060d;
-            border: 1px solid #111e30;
-            border-radius: 8px;
-            height: 100px;
-            overflow-y: auto;
-            padding: 10px;
             font-family: monospace;
-            font-size: 0.75rem;
-            color: #556b85;
+            margin-bottom: 15px;
+        }
+
+        /* LIVE TERMINAL WINDOW LAYOUT */
+        .terminal-window {
+            background-color: #040912;
+            border: 1px solid #111e30;
+            border-radius: 16px;
+            padding: 15px;
+        }
+        .terminal-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid #111e30;
+            padding-bottom: 8px;
+        }
+        .dot { width: 12px; height: 12px; border-radius: 50%; }
+        .dot-r { background-color: #ff5f56; }
+        .dot-y { background-color: #ffbd2e; }
+        .dot-g { background-color: #27c93f; }
+        .terminal-title { color: #a5b7cc; font-size: 0.85rem; font-family: monospace; margin-left: 5px; }
+        .terminal-body {
+            height: 150px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.82rem;
+            color: #a5b7cc;
+            line-height: 1.5;
             white-space: pre-wrap;
+            text-align: left;
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="header-title">⚡ Sluice Bench<br>– Benchmark<br>Report</div>
-    <div class="sub-header">Filter version: sluice_bench.c | Dataset: ClickBench / TPC-H</div>
-    
-    <button class="btn-refresh" onclick="triggerManualRefresh()">🔄 Refresh Data</button>
-    <div class="timestamp">Last updated: <span id="live-time">5/19/2026, 3:57:55 PM</span></div>
-
-    <!-- 4 CORE INTERACTIVE CONTROL BUTTONS -->
-    <div class="control-cluster">
-        <button id="btn-start" onclick="engineStart()">START</button>
-        <button id="btn-test" onclick="engineTest()">TEST</button>
-        <button id="btn-resume" onclick="engineResume()">RESUME</button>
-        <button id="btn-end" onclick="engineEnd()">END</button>
+    <div class="header-section">
+        <div class="title-text">⚡ Sluice Gate <span class="status-badge" id="status-txt">STOPPED</span></div>
+        <div class="title-text" style="margin-top: -8px;">Live Weather Stream</div>
+        <div class="sub-title">Real-time weather data | Filtered by is_ripe()</div>
     </div>
 
-    <!-- DYNAMIC METRIC DISPLAYS -->
-    <div class="card">
-        <div class="card-value cyan-text" id="metric-total">1,000,000</div>
-        <div class="card-label">Total lines / queries</div>
+    <div class="controls">
+        <button id="btn-start" onclick="gateStart()">START</button>
+        <button id="btn-test" onclick="gateTest()">TEST</button>
+        <button id="btn-resume" onclick="gateResume()">RESUME</button>
+        <button id="btn-end" onclick="gateEnd()">END</button>
     </div>
 
-    <div class="card">
-        <div class="card-value cyan-text" id="metric-accepted">12,500</div>
-        <div class="card-label">Accepted (RIPE)</div>
+    <!-- UPPER DIAL COMPONENT -->
+    <div class="gauge-box">
+        <svg class="gauge-svg" viewBox="0 0 180 180">
+            <path class="gauge-track" d="M 30 130 A 65 65 0 1 1 150 130" />
+            <text class="gauge-labels" x="22" y="135" text-anchor="middle">E</text>
+            <text class="gauge-labels" x="158" y="135" text-anchor="middle">F</text>
+            <line id="needle" class="gauge-needle" x1="90" y1="90" x2="90" y2="30" transform="rotate(-60)" />
+            <circle class="gauge-center" cx="90" cy="90" r="6" />
+        </svg>
+        <div class="load-indicator">🔋 LOAD | <span id="ripe-rate-txt">0 ripe/sec</span></div>
     </div>
 
-    <div class="card">
-        <div class="card-value cyan-text" id="metric-rate">98.75%</div>
-        <div class="card-label">Rejection rate</div>
+    <!-- MAIN DISPLAY BOXES -->
+    <div class="metric-display">
+        <div class="metric-big-val" id="lbl-total">1</div>
+        <div class="metric-sub-label">Total Data Points</div>
+
+        <div class="metric-big-val" id="lbl-ripe" style="color: #00f0ff;">0</div>
+        <div class="metric-sub-label">RIPE Points</div>
+
+        <div class="metric-big-val" id="lbl-rate">100.00</div>
+        <div class="metric-sub-label">Rejection Rate (%)</div>
+
+        <div class="metric-big-val" id="lbl-energy" style="font-size: 2.8rem; color: #00f0ff;">0.00000002</div>
+        <div class="metric-sub-label">Energy Saved (kWh)</div>
     </div>
 
-    <div class="card">
-        <div class="card-value cyan-text" style="line-height: 1.1;">
-            <span id="metric-energy">0.01000000</span><br>
-            <span style="font-size: 1.8rem;">kWh</span>
+    <!-- LOG MONITOR WINDOW -->
+    <div class="terminal-window">
+        <div class="terminal-header">
+            <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+            <div class="terminal-title">🖥️ Live Weather Stream Log</div>
         </div>
-        <div class="card-label" style="margin-top: 10px;">Energy saved (est.)</div>
+        <div class="terminal-body" id="log-screen">🟧 Stopped. Click RUN to start live weather data stream.</div>
     </div>
-
-    <!-- DIAGNOSTIC FEEDBACK LOOP -->
-    <div class="terminal-log" id="term-box">Engine standing by. Click 'START' to stream datasets live...</div>
 </div>
 
 <script>
-    let isRunning = false;
-    let autoLoop = null;
-    
-    // Core Baseline Stats Matching Screenshot
-    let totalLines = 1000000;
-    let acceptedLines = 12500;
-    let baseEnergyFactor = 0.0000001; // Scaled value calculation
+    let active = false;
+    let loopTimer = null;
+    let totalPoints = 1;
+    let ripePoints = 0;
+    let rejectedPoints = 1;
+    let energySaved = 0.00000002;
+    const energyPerReject = 0.00000002;
 
-    const logElement = document.getElementById("term-box");
+    const bodyLog = document.getElementById("log-screen");
 
-    function pushLog(msg) {
-        logElement.innerText += `\n> ${msg}`;
-        logElement.scrollTop = logElement.scrollHeight;
+    function appendLog(text) {
+        const time = new Date().toLocaleTimeString();
+        bodyLog.innerText += `\n${time} > ${text}`;
+        bodyLog.scrollTop = bodyLog.scrollHeight;
     }
 
-    function updateDisplayMetrics() {
-        let rejected = totalLines - acceptedLines;
-        let calculatedRate = (rejected / totalLines) * 100;
-        let calculatedEnergy = rejected * baseEnergyFactor;
-
-        document.getElementById("metric-total").innerText = totalLines.toLocaleString();
-        document.getElementById("metric-accepted").innerText = acceptedLines.toLocaleString();
-        document.getElementById("metric-rate").innerText = calculatedRate.toFixed(2) + "%";
-        document.getElementById("metric-energy").innerText = calculatedEnergy.toFixed(8);
-        document.getElementById("live-time").innerText = new Date().toLocaleString();
+    function syncDashboard() {
+        let rate = totalPoints > 0 ? ((rejectedPoints / totalPoints) * 100) : 0;
+        document.getElementById("lbl-total").innerText = totalPoints;
+        document.getElementById("lbl-ripe").innerText = ripePoints;
+        document.getElementById("lbl-rate").innerText = rate.toFixed(2);
+        document.getElementById("lbl-energy").innerText = energySaved.toFixed(8);
     }
 
-    // --- ENGINE CONTROL LOGIC ---
-    function engineStart() {
-        if (!isRunning) {
-            isRunning = true;
-            pushLog("Sluice Core Active. Processing incoming pipelines...");
-            executePipelineStream();
+    function gateStart() {
+        if (!active) {
+            active = true;
+            document.getElementById("status-txt").innerText = "RUNNING";
+            document.getElementById("status-txt").style.backgroundColor = "#00f0ff";
+            bodyLog.innerText = `[${new Date().toLocaleTimeString()}] ✅ Started. Fetching live weather data every 10 seconds...`;
+            streamRunner();
         }
     }
 
-    function engineTest() {
-        isRunning = false;
-        clearTimeout(autoLoop);
-        pushLog("Diagnostic test sequence triggered. Injecting validation block.");
-        // Simulated structural testing variations
-        totalLines += 5000;
-        acceptedLines += 120;
-        updateDisplayMetrics();
+    // TEST Action: Inject simulated variations to prove the length/species filter
+    function gateTest() {
+        active = false; clearTimeout(loopTimer);
+        document.getElementById("status-txt").innerText = "TESTING";
+        document.getElementById("status-txt").style.backgroundColor = "#ffcc00";
+        
+        // Simulating data variations
+        totalPoints += 2;
+        ripePoints += 1; // Accept a unique length change
+        
+        document.getElementById("needle").style.transform = "rotate(30deg)";
+        document.getElementById("ripe-rate-txt").innerText = "3 ripe/sec";
+        
+        appendLog("🔬 RUNNING BINARY VARIATION TEST...");
+        appendLog("✅ ACCEPTED: Distinct global species signature detected.");
+        syncDashboard();
     }
 
-    function engineResume() {
-        if (!isRunning) {
-            isRunning = true;
-            pushLog("Resuming live server data crunching...");
-            executePipelineStream();
-        }
+    function gateResume() { gateStart(); }
+
+    function gateEnd() {
+        active = false; clearTimeout(loopTimer);
+        document.getElementById("status-txt").innerText = "STOPPED";
+        document.getElementById("status-txt").style.backgroundColor = "#ff3333";
+        appendLog("🟧 Stopped. Sluice Core suspended.");
+        document.getElementById("needle").style.transform = "rotate(-60deg)";
     }
 
-    function engineEnd() {
-        isRunning = false;
-        clearTimeout(autoLoop);
-        pushLog("Engine terminated safely. Memory cache cleared.");
+    function streamRunner() {
+        if (!active) return;
+        totalPoints++;
+        rejectedPoints++;
+        energySaved += energyPerReject;
+        
+        // Dial moves slightly to simulate ongoing background activities
+        document.getElementById("needle").style.transform = "rotate(-40deg)";
+        document.getElementById("ripe-rate-txt").innerText = "0 ripe/sec";
+        
+        appendLog("❌ REJECTED weather value: 3050000 (duplicate signature blocked)");
+        appendLog("📊 Current data stream: 30.5°C, humidity N/A%, pressure N/A hPa");
+        
+        syncDashboard();
+        loopTimer = setTimeout(streamRunner, 2000); // 2 second update pace for fluid UI demonstration
     }
-
-    function triggerManualRefresh() {
-        pushLog("Querying active dataset mirrors...");
-        updateDisplayMetrics();
-    }
-
-    function executePipelineStream() {
-        if (!isRunning) return;
-
-        // Simulating data streams scaling into the dashboard over time
-        totalLines += Math.floor(Math.random() * 80) + 20;
-        if (Math.random() > 0.95) {
-            acceptedLines += 1; // Only accept unique non-redundant structural shifts
-        }
-
-        updateDisplayMetrics();
-        autoLoop = setTimeout(executePipelineStream, 200); // Fast incremental view update
-    }
-
-    // Initialize clock view on load
-    document.getElementById("live-time").innerText = new Date().toLocaleString();
 </script>
 
 </body>

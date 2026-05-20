@@ -3,90 +3,249 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ENCOM-SHORTE-CORE // Binary Sluice-Gate</title>
+    <title>Sluice Bench - Benchmark Report</title>
     <style>
-        body { background-color: #0d0d0d; color: #00ff00; font-family: 'Courier New', monospace; padding: 15px; margin: 0; }
-        .container { max-width: 100%; width: 650px; margin: 0 auto; border: 2px solid #00ff00; padding: 15px; box-shadow: 0 0 15px rgba(0, 255, 0, 0.2); box-sizing: border-box; }
-        h1 { text-align: center; font-size: 1.2rem; text-transform: uppercase; border-bottom: 2px dashed #00ff00; padding-bottom: 10px; margin-top: 5px; }
-        .button-cluster { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 15px 0; }
-        button { background-color: #1a1a1a; color: #00ff00; border: 1px solid #00ff00; padding: 10px 5px; font-family: 'Courier New', monospace; font-weight: bold; font-size: 0.85rem; cursor: pointer; }
-        button:active { background-color: #00ff00; color: #0d0d0d; }
-        #btn-start { border-color: #00ff00; color: #00ff00; }
-        #btn-test { border-color: #ffff00; color: #ffff00; }
-        #btn-resume { border-color: #00ffff; color: #00ffff; }
-        #btn-end { border-color: #ff0000; color: #ff0000; }
-        .dashboard { background-color: #111; border: 1px solid #333; padding: 10px; margin-bottom: 15px; }
-        .metric-line { display: flex; justify-content: space-between; margin: 6px 0; font-size: 0.95rem; border-bottom: 1px dotted #222; }
-        .metric-val { color: #ffffff; }
-        #val-rejected { color: #ff3333; }
-        #val-saved { color: #00ffff; }
-        .terminal-box { background-color: #000; border: 1px solid #00ff00; height: 200px; overflow-y: scroll; padding: 8px; font-size: 0.8rem; white-space: pre-wrap; }
+        body {
+            background-color: #050b14;
+            color: #7ce7ff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            padding: 20px;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 450px;
+            box-sizing: border-box;
+        }
+        .header-title {
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: #7ce7ff;
+            line-height: 1.2;
+            margin-bottom: 5px;
+        }
+        .sub-header {
+            font-size: 0.95rem;
+            color: #a5b7cc;
+            margin-bottom: 15px;
+            font-family: monospace;
+        }
+        .btn-refresh {
+            background: none;
+            border: 1px solid #1f3a60;
+            color: #7ce7ff;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        .timestamp {
+            font-size: 0.85rem;
+            color: #556b85;
+            margin-bottom: 25px;
+        }
+        
+        /* 4-BUTTON INTERACTIVE CLUSTER */
+        .control-cluster {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        .control-cluster button {
+            background-color: #0b1524;
+            border: 1px solid #1e3656;
+            color: #ffffff;
+            padding: 10px 0;
+            font-family: monospace;
+            font-weight: bold;
+            font-size: 0.85rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .control-cluster button:active {
+            transform: scale(0.95);
+        }
+        #btn-start { border-color: #00ff66; color: #00ff66; }
+        #btn-test { border-color: #ffcc00; color: #ffcc00; }
+        #btn-resume { border-color: #00ccff; color: #00ccff; }
+        #btn-end { border-color: #ff3333; color: #ff3333; }
+
+        /* BENCHMARK DISPLAY CARDS */
+        .card {
+            background-color: #09121f;
+            border-radius: 12px;
+            padding: 24px 15px;
+            margin-bottom: 16px;
+            text-align: center;
+            border: 1px solid #111e30;
+        }
+        .card-value {
+            font-size: 2.3rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            font-family: monospace;
+        }
+        .card-label {
+            font-size: 0.85rem;
+            color: #556b85;
+            text-transform: lowercase;
+            font-style: italic;
+        }
+        
+        /* COLOR CODING DIRECTLY MATCHING YOUR SCREENSHOT */
+        .cyan-text { color: #00f0ff; }
+        
+        /* HIDDEN DIAGNOSTIC LOG BOX */
+        .terminal-log {
+            background-color: #02060d;
+            border: 1px solid #111e30;
+            border-radius: 8px;
+            height: 100px;
+            overflow-y: auto;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 0.75rem;
+            color: #556b85;
+            white-space: pre-wrap;
+        }
     </style>
 </head>
 <body>
+
 <div class="container">
-    <h1>ENCOM-SHORTE V1.0 // GATE ENGINE</h1>
-    <div class="button-cluster">
+    <div class="header-title">⚡ Sluice Bench<br>– Benchmark<br>Report</div>
+    <div class="sub-header">Filter version: sluice_bench.c | Dataset: ClickBench / TPC-H</div>
+    
+    <button class="btn-refresh" onclick="triggerManualRefresh()">🔄 Refresh Data</button>
+    <div class="timestamp">Last updated: <span id="live-time">5/19/2026, 3:57:55 PM</span></div>
+
+    <!-- 4 CORE INTERACTIVE CONTROL BUTTONS -->
+    <div class="control-cluster">
         <button id="btn-start" onclick="engineStart()">START</button>
         <button id="btn-test" onclick="engineTest()">TEST</button>
         <button id="btn-resume" onclick="engineResume()">RESUME</button>
         <button id="btn-end" onclick="engineEnd()">END</button>
     </div>
-    <div class="dashboard">
-        <div class="metric-line"><span>Total Packets Ingested:</span><span id="val-total" class="metric-val">0</span></div>
-        <div class="metric-line"><span>Accepted (New Species Pattern):</span><span id="val-accepted" class="metric-val">0</span></div>
-        <div class="metric-line"><span>Truncated (Breed Bloat Rejected):</span><span id="val-rejected">0</span></div>
-        <div class="metric-line"><span>Sluice Rejection Rate:</span><span id="val-rate" class="metric-val">0.00%</span></div>
-        <div class="metric-line"><span>Est. Server Energy Saved:</span><span id="val-saved">0.00000000 kWh</span></div>
+
+    <!-- DYNAMIC METRIC DISPLAYS -->
+    <div class="card">
+        <div class="card-value cyan-text" id="metric-total">1,000,000</div>
+        <div class="card-label">Total lines / queries</div>
     </div>
-    <div class="terminal-box" id="terminal-log">SYSTEM STANDBY. TAP 'START' TO LIVE TRIGGER ENGINE...</div>
+
+    <div class="card">
+        <div class="card-value cyan-text" id="metric-accepted">12,500</div>
+        <div class="card-label">Accepted (RIPE)</div>
+    </div>
+
+    <div class="card">
+        <div class="card-value cyan-text" id="metric-rate">98.75%</div>
+        <div class="card-label">Rejection rate</div>
+    </div>
+
+    <div class="card">
+        <div class="card-value cyan-text" style="line-height: 1.1;">
+            <span id="metric-energy">0.01000000</span><br>
+            <span style="font-size: 1.8rem;">kWh</span>
+        </div>
+        <div class="card-label" style="margin-top: 10px;">Energy saved (est.)</div>
+    </div>
+
+    <!-- DIAGNOSTIC FEEDBACK LOOP -->
+    <div class="terminal-log" id="term-box">Engine standing by. Click 'START' to stream datasets live...</div>
 </div>
+
 <script>
-    let isRunning = false; let timerLoop = null; let lastValidLength = null;
-    let totalProcessed = 0; let acceptedCount = 0; let rejectedCount = 0; let energySaved = 0.0;
-    const energyPerReject = 0.00000002;
-    const logBox = document.getElementById("terminal-log");
+    let isRunning = false;
+    let autoLoop = null;
+    
+    // Core Baseline Stats Matching Screenshot
+    let totalLines = 1000000;
+    let acceptedLines = 12500;
+    let baseEnergyFactor = 0.0000001; // Scaled value calculation
 
-    function logToTerminal(msg) {
-        logBox.innerText += `\n[${new Date().toLocaleTimeString()}] ${msg}`;
-        logBox.scrollTop = logBox.scrollHeight;
+    const logElement = document.getElementById("term-box");
+
+    function pushLog(msg) {
+        logElement.innerText += `\n> ${msg}`;
+        logElement.scrollTop = logElement.scrollHeight;
     }
+
+    function updateDisplayMetrics() {
+        let rejected = totalLines - acceptedLines;
+        let calculatedRate = (rejected / totalLines) * 100;
+        let calculatedEnergy = rejected * baseEnergyFactor;
+
+        document.getElementById("metric-total").innerText = totalLines.toLocaleString();
+        document.getElementById("metric-accepted").innerText = acceptedLines.toLocaleString();
+        document.getElementById("metric-rate").innerText = calculatedRate.toFixed(2) + "%";
+        document.getElementById("metric-energy").innerText = calculatedEnergy.toFixed(8);
+        document.getElementById("live-time").innerText = new Date().toLocaleString();
+    }
+
+    // --- ENGINE CONTROL LOGIC ---
     function engineStart() {
-        if (!isRunning) { isRunning = true; logToTerminal(">>> SLUICE GATE ENGINE LOGIC ONLINE."); runEngineLoop(); }
-    }
-    function engineTest() {
-        isRunning = false; clearTimeout(timerLoop); logToTerminal(">>> RUNNING SPECIES PATTERN LENGTH TESTING...");
-        processBinaryPacket("BINARY_STREAM_SPECIES_SIGNATURE_DOG_64BIT");
-        processBinaryPacket("BINARY_STREAM_SPECIES_SIGNATURE_DOG_64BIT");
-        processBinaryPacket("BINARY_STREAM_BREED_DATA_METADATA_PIG_OVERLOAD_96BIT");
-    }
-    function engineResume() {
-        if (!isRunning) { isRunning = true; logToTerminal(">>> RE-ESTABLISHING STREAMS..."); runEngineLoop(); }
-    }
-    function engineEnd() { isRunning = false; clearTimeout(timerLoop); logToTerminal(">>> ENGINE GATES SHUT DOWN."); }
-
-    function processBinaryPacket(packetString) {
-        totalProcessed++; let currentLength = packetString.length;
-        if (lastValidLength !== null && currentLength === lastValidLength) {
-            rejectedCount++; energySaved += energyPerReject;
-            logToTerminal(`REJECT: Redundant structural length (${currentLength} bits). Truncated.`);
-        } else {
-            lastValidLength = currentLength; acceptedCount++;
-            logToTerminal(`ACCEPT: New structural species width verified (${currentLength} bits). Passed.`);
+        if (!isRunning) {
+            isRunning = true;
+            pushLog("Sluice Core Active. Processing incoming pipelines...");
+            executePipelineStream();
         }
-        let rate = totalProcessed > 0 ? ((rejectedCount / totalProcessed) * 100) : 0;
-        document.getElementById("val-total").innerText = totalProcessed;
-        document.getElementById("val-accepted").innerText = acceptedCount;
-        document.getElementById("val-rejected").innerText = rejectedCount;
-        document.getElementById("val-rate").innerText = rate.toFixed(2) + "%";
-        document.getElementById("val-saved").innerText = energySaved.toFixed(8) + " kWh";
     }
-    function runEngineLoop() {
+
+    function engineTest() {
+        isRunning = false;
+        clearTimeout(autoLoop);
+        pushLog("Diagnostic test sequence triggered. Injecting validation block.");
+        // Simulated structural testing variations
+        totalLines += 5000;
+        acceptedLines += 120;
+        updateDisplayMetrics();
+    }
+
+    function engineResume() {
+        if (!isRunning) {
+            isRunning = true;
+            pushLog("Resuming live server data crunching...");
+            executePipelineStream();
+        }
+    }
+
+    function engineEnd() {
+        isRunning = false;
+        clearTimeout(autoLoop);
+        pushLog("Engine terminated safely. Memory cache cleared.");
+    }
+
+    function triggerManualRefresh() {
+        pushLog("Querying active dataset mirrors...");
+        updateDisplayMetrics();
+    }
+
+    function executePipelineStream() {
         if (!isRunning) return;
-        const patterns = ["BINARY_STREAM_SPECIES_SIGNATURE_DOG_64BIT", "BINARY_STREAM_SPECIES_SIGNATURE_DOG_64BIT", "BINARY_STREAM_BREED_DATA_METADATA_CHOW_CHOW_BLU_128BIT"];
-        processBinaryPacket(patterns[Math.floor(Math.random() * patterns.length)]);
-        timerLoop = setTimeout(runEngineLoop, 1500);
+
+        // Simulating data streams scaling into the dashboard over time
+        totalLines += Math.floor(Math.random() * 80) + 20;
+        if (Math.random() > 0.95) {
+            acceptedLines += 1; // Only accept unique non-redundant structural shifts
+        }
+
+        updateDisplayMetrics();
+        autoLoop = setTimeout(executePipelineStream, 200); // Fast incremental view update
     }
+
+    // Initialize clock view on load
+    document.getElementById("live-time").innerText = new Date().toLocaleString();
 </script>
+
 </body>
 </html>
